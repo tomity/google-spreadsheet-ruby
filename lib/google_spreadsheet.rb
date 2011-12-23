@@ -652,6 +652,18 @@ module GoogleSpreadsheet
           return result.freeze()
         end
 
+        def worksheet(title)
+          doc = @session.request(:get, @worksheets_feed_url)
+          doc.css('entry').each() do |entry|
+            title_ = entry.css('title').text
+            next if title != title_
+            url = entry.css(
+              "link[@rel='http://schemas.google.com/spreadsheets/2006#cellsfeed']").first['href']
+            return Worksheet.new(@session, self, url, title_)
+          end
+          return nil
+        end
+
         # Adds a new worksheet to the spreadsheet. Returns added GoogleSpreadsheet::Worksheet.
         def add_worksheet(title, max_rows = 100, max_cols = 20)
           xml = <<-"EOS"
